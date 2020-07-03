@@ -1,0 +1,14 @@
+<resources>
+    <!--General-->
+    <string name="app_name">MyPlaces</string>
+
+    <!--PlaceListActivity-->
+    <string name="button_ok">OK</string>
+    <string name="button_yes">Yes</string>
+    <string name="button_no">No</string>
+    <string name="permission_location_required">Location access is required to search for places nearby.</string>
+    <string name="location_tracking_off">Location tracking is required for this app. Do you want modify the location options?</string>
+    <string name="wireless_off">An internet connection is needed for this app. Do you want to modify the wireless settings?</string>
+    <string name="error_location">Unable to find location!</string>
+    <string name="error_data">Unable to get Data right now!</string>
+</resources>
