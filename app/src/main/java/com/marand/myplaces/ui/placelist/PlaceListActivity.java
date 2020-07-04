@@ -8,6 +8,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -22,6 +23,7 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
 import com.google.android.material.snackbar.Snackbar;
 import com.marand.myplaces.R;
 import com.marand.myplaces.model.Item;
@@ -50,7 +52,7 @@ public class PlaceListActivity extends AppCompatActivity {
     private ArrayList<Item> placeList;
 
     @NonNull
-    private String[] mLocation_permissions = new String[] {
+    private String[] mLocation_permissions = new String[]{
             Manifest.permission.ACCESS_FINE_LOCATION
     };
 
@@ -72,7 +74,7 @@ public class PlaceListActivity extends AppCompatActivity {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
-                Log.e("onScrollStateChanged","on scroll changed");
+                Log.e("onScrollStateChanged", "on scroll changed");
                 if (!recyclerView.canScrollVertically(1) && isMorePlaces) {
                     mOffset = Constants.LIMIT_COUNT + mOffset;
                     isMorePlaces = false;
@@ -90,6 +92,7 @@ public class PlaceListActivity extends AppCompatActivity {
         mPlace_recycler_view = findViewById(R.id.place_recycler_view);
         mProgress_bar = findViewById(R.id.progress_bar);
     }
+
     private void initPlaceRecyclerView() {
         mPlace_recycler_view.setLayoutManager(new LinearLayoutManager(placeListActivity));
         mPlace_adapter = new PlaceAdapter();
@@ -102,6 +105,7 @@ public class PlaceListActivity extends AppCompatActivity {
                 ActivityCompat.checkSelfPermission(placeListActivity, Manifest.permission.ACCESS_COARSE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED;
     }
+
     private void checkSettings() {
         // Is GPS enabled?
         final boolean gpsEnabled = utils.locationTrackingEnabled(placeListActivity);
@@ -118,6 +122,7 @@ public class PlaceListActivity extends AppCompatActivity {
             showDialog(internetIntent, WIFI_SETTINGS_REQUEST_CODE, getString(R.string.wireless_off));
         }
     }
+
     private void requestLocationPermission() {
         if (locationPermissionHasBeenGranted()) {
             // Permission has been granted, launch setup
@@ -145,6 +150,7 @@ public class PlaceListActivity extends AppCompatActivity {
         }
         return locationManager.getLastKnownLocation(locationProvider);
     }
+
     private String getLocationProvider(@NonNull LocationManager manager) {
         String locationProvider = null;
         if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -154,6 +160,7 @@ public class PlaceListActivity extends AppCompatActivity {
         }
         return locationProvider;
     }
+
     private void listenForLocationUpdates() {
         final LocationManager locationManager = (LocationManager) placeListActivity.getSystemService(LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(placeListActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -165,22 +172,26 @@ public class PlaceListActivity extends AppCompatActivity {
                 60000,
                 10,
                 new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                locationManager.removeUpdates(this);
-                getCoordinates();
-            }
+                    @Override
+                    public void onLocationChanged(Location location) {
+                        locationManager.removeUpdates(this);
+                        getCoordinates();
+                    }
 
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
+                    @Override
+                    public void onStatusChanged(String provider, int status, Bundle extras) {
+                    }
 
-            @Override
-            public void onProviderEnabled(String provider) {}
+                    @Override
+                    public void onProviderEnabled(String provider) {
+                    }
 
-            @Override
-            public void onProviderDisabled(String provider) {}
-        });
+                    @Override
+                    public void onProviderDisabled(String provider) {
+                    }
+                });
     }
+
     private void getCoordinates() {
         Location location = getCurrentLocation();
         if (location != null) {
@@ -188,7 +199,7 @@ public class PlaceListActivity extends AppCompatActivity {
             double longi = location.getLongitude();
             mCurrent_latitude = String.valueOf(lat);
             mCurrent_longitude = String.valueOf(longi);
-            Log.e(TAG, "got Coordinates: "+ mCurrent_longitude + " // "+mCurrent_latitude);
+            Log.e(TAG, "got Coordinates: " + mCurrent_longitude + " // " + mCurrent_latitude);
             sendRequest();
         } else {
             Toast.makeText(placeListActivity, getString(R.string.error_location), Toast.LENGTH_SHORT).show();
@@ -205,10 +216,10 @@ public class PlaceListActivity extends AppCompatActivity {
     }
 
     private void sendRequest() {
-        String ll = mCurrent_latitude+","+mCurrent_longitude;
+        String ll = mCurrent_latitude + "," + mCurrent_longitude;
         myViewModel = new ViewModelProvider(placeListActivity, new MyViewModelFactory(
                 getApplication()
-                )).get(MyViewModel.class);
+        )).get(MyViewModel.class);
 
         myViewModel.getPlace(Constants.CLIENT_ID,
                 Constants.CLIENT_SECRET,
@@ -221,10 +232,10 @@ public class PlaceListActivity extends AppCompatActivity {
                     case SUCCESS: {
                         mProgress_bar.setVisibility(View.GONE);
                         isMorePlaces = Constants.LIMIT_COUNT <= placeResource.data.getResponse().getGroups().get(0).getItems().size();
-                        if (mOffset == 0){
-                            placeList =  placeResource.data.getResponse().getGroups().get(0).getItems();
-                        }else {
-                            placeList.addAll( placeResource.data.getResponse().getGroups().get(0).getItems());
+                        if (mOffset == 0) {
+                            placeList = placeResource.data.getResponse().getGroups().get(0).getItems();
+                        } else {
+                            placeList.addAll(placeResource.data.getResponse().getGroups().get(0).getItems());
                         }
 
                         mPlace_adapter.setItems(placeList);
