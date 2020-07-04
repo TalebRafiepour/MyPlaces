@@ -24,6 +24,7 @@ public class MyRepository {
 
     public LiveData<Resource<Place>> makeReactiveQuery(String clientId, String clientSecret, int version,
                                                        int limit, int offset, String ll) {
+        Log.e("makeReactiveQuery","int limit: "+limit+", int offset:"+offset);
         if (place == null) {
             place = new MediatorLiveData<>();
             place.setValue(Resource.loading((Place)null));

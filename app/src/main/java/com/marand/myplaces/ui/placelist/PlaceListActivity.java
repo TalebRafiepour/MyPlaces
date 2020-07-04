@@ -24,10 +24,13 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 import com.google.android.material.snackbar.Snackbar;
 import com.marand.myplaces.R;
+import com.marand.myplaces.model.Item;
 import com.marand.myplaces.util.Constants;
 import com.marand.myplaces.util.Utils;
 import com.marand.myplaces.viewmodel.MyViewModel;
 import com.marand.myplaces.viewmodel.MyViewModelFactory;
+
+import java.util.ArrayList;
 
 public class PlaceListActivity extends AppCompatActivity {
     private static final String TAG = PlaceListActivity.class.getSimpleName();
@@ -44,6 +47,7 @@ public class PlaceListActivity extends AppCompatActivity {
     private ProgressBar mProgress_bar;
     private PlaceAdapter mPlace_adapter;
     private MyViewModel myViewModel;
+    private ArrayList<Item> placeList;
 
     @NonNull
     private String[] mLocation_permissions = new String[] {
@@ -54,6 +58,7 @@ public class PlaceListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_palce_list);
+        mPlace_recycler_view = findViewById(R.id.place_recycler_view);
 
         placeListActivity = this;
         utils = new Utils();
@@ -63,13 +68,15 @@ public class PlaceListActivity extends AppCompatActivity {
         checkSettings();
 
         mPlace_recycler_view.addOnScrollListener(new RecyclerView.OnScrollListener() {
+
             @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                if (dy > 0 && isMorePlaces) {
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                Log.e("onScrollStateChanged","on scroll changed");
+                if (!recyclerView.canScrollVertically(1) && isMorePlaces) {
                     mOffset = Constants.LIMIT_COUNT + mOffset;
                     isMorePlaces = false;
-                    myViewModel.getPlace().removeObservers(placeListActivity);
+                    myViewModel.place().removeObservers(placeListActivity);
                     sendRequest();
                 }
             }
@@ -200,21 +207,27 @@ public class PlaceListActivity extends AppCompatActivity {
     private void sendRequest() {
         String ll = mCurrent_latitude+","+mCurrent_longitude;
         myViewModel = new ViewModelProvider(placeListActivity, new MyViewModelFactory(
-                getApplication(),
-                Constants.CLIENT_ID,
+                getApplication()
+                )).get(MyViewModel.class);
+
+        myViewModel.getPlace(Constants.CLIENT_ID,
                 Constants.CLIENT_SECRET,
                 Constants.FOURSQUARE_VERSION_NUMBER,
                 Constants.LIMIT_COUNT,
                 mOffset,
-                ll)).get(MyViewModel.class);
-
-        myViewModel.getPlace().observe(placeListActivity, placeResource -> {
+                ll).observe(placeListActivity, placeResource -> {
             if (placeResource != null) {
                 switch (placeResource.status) {
                     case SUCCESS: {
                         mProgress_bar.setVisibility(View.GONE);
                         isMorePlaces = Constants.LIMIT_COUNT <= placeResource.data.getResponse().getGroups().get(0).getItems().size();
-                        mPlace_adapter.setItems(placeResource.data.getResponse().getGroups().get(0).getItems());
+                        if (mOffset == 0){
+                            placeList =  placeResource.data.getResponse().getGroups().get(0).getItems();
+                        }else {
+                            placeList.addAll( placeResource.data.getResponse().getGroups().get(0).getItems());
+                        }
+
+                        mPlace_adapter.setItems(placeList);
                         // This below part is for UI updating!
                         /*Parcelable parcelable = mPlace_recycler_view.getLayoutManager().onSaveInstanceState();
                         mPlace_recycler_view.getLayoutManager().onRestoreInstanceState(parcelable);*/
